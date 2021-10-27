@@ -148,20 +148,20 @@ void setup() {
 
   ArduinoOTA.setHostname(hostname);
 
-  DEBUG("Launched");
-  init_neopixels();
-
-  m409_ticker.attach_ms_scheduled(1000, send_m409);
-  neopixel_ticker.attach_ms_scheduled(200, render_neopixels);
-
   if (config_loaded && WiFi.SSID() != "") {
     WiFi.mode(WIFI_STA);
-    WiFi.begin(WiFi.SSID(), WiFi.psk());
+    WiFi.begin();
   }
   if (WiFi.SSID() == "") {
     wm.setConfigPortalBlocking(false);
     wm.startConfigPortal(hostname);
   }
+
+  init_neopixels();
+
+  m409_ticker.attach_ms_scheduled(1000, send_m409);
+  neopixel_ticker.attach_ms_scheduled(200, render_neopixels);
+  DEBUG("Launched");
 }
 
 void loop() {
@@ -228,9 +228,7 @@ void loop() {
     DEBUG("WiFi config portal exited");
     if (!wifi_connected && WiFi.SSID() != "") {
       DEBUG("Attempting wifi reconnect");
-      WiFi.mode(WIFI_STA);
-      delay(200);
-      WiFi.begin(WiFi.SSID(), WiFi.psk());
+      WiFi.begin();
     }
   }
 }

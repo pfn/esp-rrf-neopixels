@@ -117,6 +117,12 @@ void render_neopixels() {
             if (object_model.heaters[h].state == fault)
               heater = h;
           }
+          // first actively heating heater before any active
+          for (uint8_t h = 0; heater == DISPLAY_ANY && h < MAX_TOOLS; ++h) {
+            if ((object_model.heaters[h].state == active || object_model.heaters[h].state == tuning) &&
+              object_model.heaters[h].current_temp < (object_model.heaters[h].active_temp - 2))
+              heater = h;
+          }
           for (uint8_t h = 0; heater == DISPLAY_ANY && h < MAX_TOOLS; ++h) {
             if (object_model.heaters[h].state == active || object_model.heaters[h].state == tuning)
               heater = h;
