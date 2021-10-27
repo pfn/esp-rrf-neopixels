@@ -3,7 +3,7 @@
         {
             "pin": 15,
             "startup_color": "#00ffff",
-            "display_item": 18,
+            "display_item": 0,
             "type": 82,
             "offset": 0,
             "count": 16,
