@@ -42,9 +42,9 @@ void render_neopixels() {
     for (uint8_t i = 0; i < config.leds_count; ++i) {
       neopixels[i]->fill(config.leds[i].startup_color);
       neopixels[i]->setPixelColor(TRANSLATE(i, px) % config.common_count, 0);
-      if (!tick)
-        px = (px + 1) % config.common_count;
     }
+    if (!tick)
+      px = (px + 1) % config.common_count;
   } else {
     uint8_t fill_count = -1;
 

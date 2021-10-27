@@ -32,9 +32,11 @@ Ticker neopixel_ticker;
 ObjectModel object_model;
 
 void save_wifi_config() {
+  DEBUG("WiFi portal save");
   if (strncmp(hostname, custom_hostname.getValue(), HOSTNAME_LEN) != 0) {
     LittleFS.begin();
     strncpy(hostname, custom_hostname.getValue(), HOSTNAME_LEN);
+    DEBUGF("Saving new hostname: %s\n", hostname);
     File f = LittleFS.open("/hostname", "w");
     if (f) {
       f.print(hostname);
@@ -43,6 +45,10 @@ void save_wifi_config() {
     LittleFS.end();
     ESP.reset();
   }
+  WiFi.disconnect();
+  wifi_station_disconnect();
+  delay(200);
+  WiFi.mode(WIFI_STA);
 }
 
 void send_m409() {
@@ -184,23 +190,18 @@ void loop() {
 
   wifi_connected = WiFi.status() == WL_CONNECTED;
 
-  if (wm.getWebPortalActive() || wm.getConfigPortalActive()) {
-    wm.process();
-  } else if (!wifi_connected && config_portal_running) {
-    config_portal_running = false;
-    if (WiFi.SSID() != "") {
-      WiFi.mode(WIFI_STA);
-      WiFi.begin(WiFi.SSID(), WiFi.psk());
-    }
-  }
-
   if (wifi_connected) {
     server.handleClient();
     MDNS.update();
     ArduinoOTA.handle();
   } else {
-    if (!wm.getConfigPortalActive() && millis() - wifi_down_time > 30000) {
+    if (!wm.getConfigPortalActive() && millis() - wifi_down_time > 15000) {
+      DEBUG("Launching WiFi config portal");
       config_portal_running = true;
+      WiFi.disconnect();
+      wifi_station_disconnect();
+      delay(200);
+      WiFi.mode(WIFI_AP);
       wm.setConfigPortalBlocking(false);
       wm.startConfigPortal(hostname);
       if (WiFi.SSID() != "")
@@ -219,5 +220,19 @@ void loop() {
   if (model.ready) {
     object_model = model;
     model.ready = false;
+  }
+
+  // wm.process changes isActive state, make sure it happens last to ensure consistency
+  if (wm.getWebPortalActive() || wm.getConfigPortalActive()) {
+    wm.process();
+  } else if (config_portal_running) {
+    config_portal_running = false;
+    wifi_down_time = millis();
+    DEBUG("WiFi config portal exited");
+    if (!wifi_connected && WiFi.SSID() != "") {
+      DEBUG("Attempting wifi reconnect");
+      WiFi.mode(WIFI_STA);
+      WiFi.begin(WiFi.SSID(), WiFi.psk());
+    }
   }
 }
