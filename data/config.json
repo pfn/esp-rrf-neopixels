@@ -1,0 +1,62 @@
+{
+    "neopixels": [
+        {
+            "pin": 15,
+            "startup_color": "#00ffff",
+            "display_item": 18,
+            "type": 82,
+            "offset": 0,
+            "count": 16,
+            "brightness": 8,
+            "reverse": true,
+            "temp_base": 10
+        },
+        {
+            "pin": 12,
+            "startup_color": "#0000ff",
+            "display_item": 15,
+            "type": 82,
+            "offset": 0,
+            "count": 16,
+            "brightness": 8,
+            "reverse": true,
+            "temp_base": 20
+        },
+        {
+            "pin": 13,
+            "startup_color": "#ff0000",
+            "display_item": 17,
+            "type": 82,
+            "offset": 0,
+            "count": 16,
+            "brightness": 8,
+            "reverse": true,
+            "temp_base": 20
+        }
+
+    ],
+    "colors": {
+        "state": {
+            "starting": "#0000ff",
+            "updating": "#ffff00",
+            "paused": "#8000a0",
+            "changingTool": "#ffff00",
+            "busy": "#ffff00",
+            "halted": "#ffaa00",
+            "idle": "#ffffff"
+        },
+        "heater": {
+            "heating": "#ff0000",
+            "cooling": "#0000ff",
+            "secondary": "#ff4040"
+        },
+        "fan": {
+            "active": "#80ff80",
+            "secondary": "#007777"
+        },
+        "printing": {
+            "done": "#00ff00",
+            "secondary": "#40ff40"
+        }
+    }
+}
