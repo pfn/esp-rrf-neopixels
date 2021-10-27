@@ -43,12 +43,9 @@ void save_wifi_config() {
       f.close();
     }
     LittleFS.end();
-    ESP.reset();
   }
-  WiFi.disconnect();
-  wifi_station_disconnect();
-  delay(200);
-  WiFi.mode(WIFI_STA);
+  delay(500);
+  ESP.reset();
 }
 
 void send_m409() {
@@ -232,6 +229,7 @@ void loop() {
     if (!wifi_connected && WiFi.SSID() != "") {
       DEBUG("Attempting wifi reconnect");
       WiFi.mode(WIFI_STA);
+      delay(200);
       WiFi.begin(WiFi.SSID(), WiFi.psk());
     }
   }
