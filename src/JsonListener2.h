@@ -29,9 +29,12 @@ class JsonListener2 : public JsonListener {
   }
   inline void startArray() override {
     stack.push(current | IS_ARRAY);
+    index_stack.push(index);
+    index = 0;
   }
   inline void endArray() override {
-    index = 0; // FIXME arrays of arrays are going to result in inconsistent index
+    index = index_stack.top();
+    index_stack.pop();
     pop();
   }
   inline void startObject() override {
@@ -57,6 +60,7 @@ class JsonListener2 : public JsonListener {
   T current = static_cast<T>(0);
   private:
   std::stack<uint8_t> stack;
+  std::stack<uint16_t> index_stack;
   void pop() {
     stack.pop();
     current = parent();

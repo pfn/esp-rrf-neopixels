@@ -42,6 +42,7 @@ class ObjectModel {
      return print_duration / (float) max(1u, print_duration + print_remaining);
   }
   bool ready = false;
+  uint32_t last_update = 0;
   inline void reset_print_progress() {
     print_duration = 0;
     print_remaining = 0;

@@ -9,30 +9,32 @@
 Config config;
 void ConfigListener::key(const char *key) {
   DEBUGF("key: %s", key);
-       MAP_KEY("pin",           cfg_pin)
-  else MAP_KEY("startup_color", cfg_start_color)
-  else MAP_KEY("display_item",  cfg_display_item)
-  else MAP_KEY("type",          cfg_type)
-  else MAP_KEY("offset",        cfg_offset)
-  else MAP_KEY("count",         cfg_count)
-  else MAP_KEY("reverse",       cfg_reverse)
-  else MAP_KEY("brightness",    cfg_brightness)
-  else MAP_KEY("temp_base",     cfg_temp_base)
-  else MAP_KEY("starting",      cfg_starting)
-  else MAP_KEY("updating",      cfg_updating)
-  else MAP_KEY("paused",        cfg_paused)
-  else MAP_KEY("changingTool",  cfg_changingTool)
-  else MAP_KEY("busy",          cfg_busy)
-  else MAP_KEY("idle",          cfg_idle)
-  else MAP_KEY("heating",       cfg_heating)
-  else MAP_KEY("cooling",       cfg_cooling)
-  else MAP_KEY("secondary",     cfg_secondary)
-  else MAP_KEY("active",        cfg_active)
-  else MAP_KEY("done",          cfg_done)
-  else MAP_KEY("heater",        cfg_heater)
-  else MAP_KEY("fan",           cfg_fan)
-  else MAP_KEY("printing",      cfg_printing)
-  else MAP_KEY("halted",        cfg_halted)
+       MAP_KEY("pin",            cfg_pin)
+  else MAP_KEY("startup_color",  cfg_start_color)
+  else MAP_KEY("display_item",   cfg_display_item)
+  else MAP_KEY("type",           cfg_type)
+  else MAP_KEY("offset",         cfg_offset)
+  else MAP_KEY("count",          cfg_count)
+  else MAP_KEY("reverse",        cfg_reverse)
+  else MAP_KEY("brightness",     cfg_brightness)
+  else MAP_KEY("temp_base",      cfg_temp_base)
+  else MAP_KEY("starting",       cfg_starting)
+  else MAP_KEY("updating",       cfg_updating)
+  else MAP_KEY("paused",         cfg_paused)
+  else MAP_KEY("changingTool",   cfg_changingTool)
+  else MAP_KEY("busy",           cfg_busy)
+  else MAP_KEY("idle",           cfg_idle)
+  else MAP_KEY("heating",        cfg_heating)
+  else MAP_KEY("cooling",        cfg_cooling)
+  else MAP_KEY("secondary",      cfg_secondary)
+  else MAP_KEY("active",         cfg_active)
+  else MAP_KEY("done",           cfg_done)
+  else MAP_KEY("heater",         cfg_heater)
+  else MAP_KEY("fan",            cfg_fan)
+  else MAP_KEY("printing",       cfg_printing)
+  else MAP_KEY("halted",         cfg_halted)
+  else MAP_KEY("swap_serial",    cfg_swap_serial)
+  else MAP_KEY("query_interval", cfg_query_interval)
   else current = cfg_unk;
 }
 
@@ -69,6 +71,12 @@ void ConfigListener::handle_value(const char *value) {
     case cfg_temp_base:
       config.leds[index].temp_base = strtol(value, NULL, 10);
       break;
+    case cfg_swap_serial:
+      config.swap_serial = value[0] == 't';
+      break;
+    case cfg_query_interval:
+      config.query_interval = strtol(value, NULL, 10);
+      break;
     CASE_COLOR(state,    starting)
     CASE_COLOR(state,    updating)
     CASE_COLOR(state,    paused)
@@ -95,7 +103,11 @@ void ConfigListener::handle_value(const char *value) {
           break;
       }
       break;
-    default:
+    case cfg_heater: // don't process container-only keys
+    case cfg_fan:
+    case cfg_printing:
+    case cfg_TOP: // these are no-op
+    case cfg_unk:
       break;
   }
 }

@@ -1,7 +1,7 @@
 {
     "neopixels": [
         {
-            "pin": 15,
+            "pin": 0,
             "startup_color": "#00ffff",
             "display_item": 0,
             "type": 82,
@@ -9,10 +9,10 @@
             "count": 16,
             "brightness": 8,
             "reverse": true,
-            "temp_base": 10
+            "temp_base": 20
         },
         {
-            "pin": 12,
+            "pin": 4,
             "startup_color": "#0000ff",
             "display_item": 15,
             "type": 82,
@@ -23,9 +23,9 @@
             "temp_base": 20
         },
         {
-            "pin": 13,
+            "pin": 5,
             "startup_color": "#ff0000",
-            "display_item": 17,
+            "display_item": 23,
             "type": 82,
             "offset": 0,
             "count": 16,
@@ -33,8 +33,8 @@
             "reverse": true,
             "temp_base": 20
         }
-
     ],
+
     "colors": {
         "state": {
             "starting": "#0000ff",
@@ -58,5 +58,7 @@
             "done": "#00ff00",
             "secondary": "#40ff40"
         }
-    }
+    },
+    "swap_serial": true,
+    "query_interval": 1000
 }

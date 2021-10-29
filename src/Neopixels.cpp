@@ -31,20 +31,20 @@ void render_connecting() {
 
 void render_neopixels() {
   static uint8_t tick = 0;
-  static uint8_t px = 1;
+  static uint8_t px[MAX_LEDS] = {1};
   static uint16_t active_setpoints[MAX_TOOLS] = {0};
   static uint16_t standby_setpoints[MAX_TOOLS] = {0};
 
   // slow down animations so they aren't so anxiety inducing, but render often for responsiveness to change
   tick = (tick + 1) % 5;
 
-  if (!object_model.ready) {
+  if (!object_model.ready || millis() - object_model.last_update > config.query_interval * 2) {
     for (uint8_t i = 0; i < config.leds_count; ++i) {
       neopixels[i]->fill(config.leds[i].startup_color);
-      neopixels[i]->setPixelColor(TRANSLATE(i, px) % config.common_count, 0);
+      neopixels[i]->setPixelColor(TRANSLATE(i, px[i]) % config.common_count, 0);
+      if (!tick)
+        px[i] = (px[i] + 1) % config.common_count;
     }
-    if (!tick)
-      px = (px + 1) % config.common_count;
   } else {
     uint8_t fill_count = -1;
 
@@ -138,9 +138,9 @@ void render_neopixels() {
         switch (object_model.heaters[heater].state) {
           case fault:
             neopixels[i]->fill(0);
-            px = (px + 1) % 2;
+            px[i] = (px[i] + 1) % 2;
             for (uint8_t j = 0; j < config.common_count; j += 2) {
-              neopixels[i]->setPixelColor(j + px, config.heater.heating);
+              neopixels[i]->setPixelColor(j + px[i], config.heater.heating);
             }
             break;
           case active:
@@ -194,9 +194,9 @@ void render_neopixels() {
             neopixels[i]->fill(config.state.updating);
           case halted:
             neopixels[i]->fill(0);
-            px = (px + 1) % 2;
+            px[i] = (px[i] + 1) % 2;
             for (uint8_t j = 0; j < config.common_count; j += 2) {
-              neopixels[i]->setPixelColor(j + px, config.state.halted);
+              neopixels[i]->setPixelColor(j + px[i], config.state.halted);
             }
             break;
           case printer_off: break; // no-op, handled at the top
@@ -228,10 +228,10 @@ void render_neopixels() {
       }
 
       if (fill_count > 0 && fill_count < config.common_count) {
-        px = max(fill_count, px);
-        neopixels[i]->setPixelColor(TRANSLATE(i, px), 0);
+        px[i] = max(fill_count, px[i]);
+        neopixels[i]->setPixelColor(TRANSLATE(i, px[i]), 0);
         if (!tick)
-          px = (px + 1) % config.common_count;
+          px[i] = (px[i] + 1) % config.common_count;
       }
     }
   }
@@ -259,6 +259,7 @@ void init_neopixels() {
       ++config.leds_count;
     }
   }
+  DEBUGF("Configured %d neopixels, %d LEDs each\n", config.leds_count, config.common_count);
   uint32_t animationColor[MAX_LEDS] = {0};
 
   for (uint8_t i = 0; i < config.leds_count; ++i) {

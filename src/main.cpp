@@ -31,6 +31,8 @@ Ticker m409_ticker;
 Ticker neopixel_ticker;
 ObjectModel object_model;
 
+char last_buffer[SERIAL_BUFFER_SIZE] = "DEADBEEF";
+
 void save_wifi_config() {
   DEBUG("WiFi portal save");
   if (strncmp(hostname, custom_hostname.getValue(), HOSTNAME_LEN) != 0) {
@@ -49,7 +51,7 @@ void save_wifi_config() {
 }
 
 void send_m409() {
-  Serial.println("M409 F\"d99f\"");
+  Serial.print("M409 F\"d99f\"\n");
 }
 
 void handleConfigUpload() {
@@ -83,6 +85,8 @@ void handleConfigUpload() {
         config = parseConfig(file);
         file.close();
         init_neopixels();
+        m409_ticker.detach();
+        m409_ticker.attach_ms_scheduled(config.query_interval, send_m409);
       }
       LittleFS.end();
   }
@@ -91,7 +95,6 @@ void handleConfigUpload() {
 void setup() {
   bool config_loaded = false;
 
-  Serial.begin(57600);
   #ifdef DEBUGGING
   Serial1.begin(115200);
   Serial1.setDebugOutput(true);
@@ -114,6 +117,12 @@ void setup() {
     f.close();
   }
   LittleFS.end();
+
+  Serial.begin(57600);
+  if (config.swap_serial) {
+    DEBUG("Swapping serial pins");
+    Serial.swap();
+  }
 
   wm.setClass("invert");
   const char* menu[] = {"wifi", "wifinoscan", "update", "restart" };
@@ -144,6 +153,11 @@ void setup() {
     LittleFS.end();
   });
 
+  server.on("/rx", HTTP_GET, []() {
+    last_buffer[SERIAL_BUFFER_SIZE - 1] = 0;
+    server.send(200, "text/plain", last_buffer);
+  });
+
   server.on("/config.json", HTTP_POST, []() { server.send(100, "application/json", "{}\n"); }, handleConfigUpload);
 
   ArduinoOTA.setHostname(hostname);
@@ -159,7 +173,7 @@ void setup() {
 
   init_neopixels();
 
-  m409_ticker.attach_ms_scheduled(1000, send_m409);
+  m409_ticker.attach_ms_scheduled(config.query_interval, send_m409);
   neopixel_ticker.attach_ms_scheduled(200, render_neopixels);
   DEBUG("Launched");
 }
@@ -210,12 +224,17 @@ void loop() {
   int available;
   while ((available = Serial.available()) > 0) {
     int read = Serial.read(read_buffer, min(SERIAL_BUFFER_SIZE, available));
+    #ifndef DEBUGGING
+      Serial1.write(read_buffer, read);
+    #endif
+    memcpy(last_buffer, read_buffer, read);
     for (int i = 0; i < read; ++i) {
       parseObjectModel(read_buffer[i], &model);
     }
   }
   if (model.ready) {
     object_model = model;
+    object_model.last_update = millis();
     model.ready = false;
   }
 

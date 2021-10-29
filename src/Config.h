@@ -52,6 +52,8 @@ typedef struct {
 
 typedef struct {
   bool loaded = false;
+  bool swap_serial = true;
+  uint16_t query_interval = 1000;
   uint8_t leds_count = 0;
   uint8_t common_count = 255;
   led_config leds[MAX_LEDS];
@@ -64,13 +66,14 @@ typedef struct {
 extern Config config;
 
 enum cfg_state { cfg_TOP, cfg_unk,
- cfg_pin, cfg_start_color, cfg_display_item,
- cfg_offset, cfg_reverse, cfg_count,
- cfg_brightness, cfg_temp_base,
- cfg_starting, cfg_updating, cfg_paused, cfg_changingTool, cfg_busy, cfg_idle, cfg_halted,
- cfg_heating, cfg_cooling, cfg_secondary, cfg_active, cfg_done,
- cfg_heater, cfg_fan, cfg_printing,
- cfg_type
+  cfg_swap_serial, cfg_query_interval,
+  cfg_pin, cfg_start_color, cfg_display_item,
+  cfg_offset, cfg_reverse, cfg_count,
+  cfg_brightness, cfg_temp_base,
+  cfg_starting, cfg_updating, cfg_paused, cfg_changingTool, cfg_busy, cfg_idle, cfg_halted,
+  cfg_heating, cfg_cooling, cfg_secondary, cfg_active, cfg_done,
+  cfg_heater, cfg_fan, cfg_printing,
+  cfg_type
 };
 
 class ConfigListener : public JsonListener2<enum cfg_state> {
