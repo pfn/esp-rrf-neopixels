@@ -31,7 +31,7 @@ Ticker m409_ticker;
 Ticker neopixel_ticker;
 ObjectModel object_model;
 
-char last_buffer[SERIAL_BUFFER_SIZE] = "DEADBEEF";
+ring_buffer last_buffer(SERIAL_BUFFER_SIZE);
 
 void save_wifi_config() {
   DEBUG("WiFi portal save");
@@ -154,8 +154,33 @@ void setup() {
   });
 
   server.on("/rx", HTTP_GET, []() {
-    last_buffer[SERIAL_BUFFER_SIZE - 1] = 0;
-    server.send(200, "text/plain", last_buffer);
+    char out[SERIAL_BUFFER_SIZE];
+    size_t i;
+
+    for (i = 0; i < 1024 && i < last_buffer.size(); ++i) {
+      out[i] = last_buffer[i];
+    }
+    server.setContentLength(i);
+    server.send(200, "text/plain", "");
+    server.sendContent(out, i);
+  });
+
+  server.on("/reset", HTTP_GET, []() {
+    server.send(200, "text/plain", "Rebooting");
+    delay(200);
+    ESP.reset();
+  });
+
+  server.on("/debuglog", HTTP_GET, []() {
+    char buffer[1024];
+    size_t i;
+
+    for (i = 0; i < 1024 && i < debug_buffer.size(); ++i) {
+      buffer[i] = debug_buffer[i];
+    }
+    server.setContentLength(i);
+    server.send(200, "text/plain", "");
+    server.sendContent(buffer, i);
   });
 
   server.on("/config.json", HTTP_POST, []() { server.send(100, "application/json", "{}\n"); }, handleConfigUpload);
@@ -227,7 +252,7 @@ void loop() {
     #ifndef DEBUGGING
       Serial1.write(read_buffer, read);
     #endif
-    memcpy(last_buffer, read_buffer, read);
+    last_buffer.write((const uint8_t *)read_buffer, read);
     for (int i = 0; i < read; ++i) {
       parseObjectModel(read_buffer[i], &model);
     }
