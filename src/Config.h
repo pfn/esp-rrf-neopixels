@@ -43,7 +43,7 @@ typedef struct {
   uint8_t display_item;
   bool active = false;
   bool reverse = false;
-  neoPixelType type = NEO_RGB;
+  neoPixelType type = NEO_GRB;
   uint8_t count = 16;
   uint8_t offset = 0; // animation pixel offset
   uint8_t brightness = 8;
