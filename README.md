@@ -2,7 +2,7 @@
 
 This project is designed to handle NeoPixel control on an ESP8266 (Wemos D1 mini) and offload it from RepRapFirmware.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/OXgH2lOdC04" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Youtube Thumbnail](http://img.youtube.com/vi/OXgH2lOdC04/0.jpg)](http://www.youtube.com/watch?v=OXgH2lOdC04 "ESP neopixel controller demo")
 
 ## Features
 
