@@ -43,7 +43,13 @@ TODO more clarity
 
 ### WiFi
 
-TODO
+TODO more clarity
+
+1. First boot will launch a WiFi captive portal (navigate to any uncached address in a browser) using the AP name `rrf-neopixel`
+2. Configure SSID/PSK as necessary in the portal and save
+3. Optionally change the hostname from `rrf-neopixel` if desired
+
+Once configured and rebooted, the device should come online and be available at `http://rrf-neopixel.local/` (or whatever you've set for HOSTNAME`.local`). However there is no WebUI yet so `/` will result in a 404, see [HTTP end-points](#http-end-points) below.
 
 ### Wiring
 
