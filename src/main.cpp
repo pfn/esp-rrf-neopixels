@@ -19,11 +19,7 @@ ESP8266WebServer server(80);
 #define SERIAL_BUFFER_SIZE 384
 char hostname[HOSTNAME_LEN] = "rrf-neopixel";
 
-#ifdef DEBUGGING
-WiFiManager wm(Serial1);
-#else
-WiFiManager wm;
-#endif
+WiFiManager wm;// (debug_buffer); needs https://github.com/tzapu/WiFiManager/pull/1307
 
 WiFiManagerParameter custom_hostname("hostname",
  "Choose a hostname for this NeoPixel controller", hostname, HOSTNAME_LEN);
@@ -95,12 +91,7 @@ void handleConfigUpload() {
 void setup() {
   bool config_loaded = false;
 
-  #ifdef DEBUGGING
-  Serial1.begin(115200);
-  Serial1.setDebugOutput(true);
-  #else
   Serial1.begin(57600);
-  #endif
   LittleFS.begin();
 
   File f = LittleFS.open("/hostname", "r");
@@ -249,9 +240,7 @@ void loop() {
   int available;
   while ((available = Serial.available()) > 0) {
     int read = Serial.read(read_buffer, min(SERIAL_BUFFER_SIZE, available));
-    #ifndef DEBUGGING
-      Serial1.write(read_buffer, read);
-    #endif
+    Serial1.write(read_buffer, read);
     last_buffer.write((const uint8_t *)read_buffer, read);
     for (int i = 0; i < read; ++i) {
       parseObjectModel(read_buffer[i], &model);

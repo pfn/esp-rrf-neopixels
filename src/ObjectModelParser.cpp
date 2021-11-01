@@ -61,9 +61,11 @@ void ObjectModelListener::handle_value(const char *value) {
     case active_temp:
     case current_temp:
     case standby_temp:
-           MAP_TEMP(active_temp,  model->heaters[index], value)
-      else MAP_TEMP(standby_temp, model->heaters[index], value)
-      else MAP_TEMP(current_temp, model->heaters[index], value)
+      if (parent() == heaters) {
+             MAP_TEMP(active_temp,  model->heaters[index], value)
+        else MAP_TEMP(standby_temp, model->heaters[index], value)
+        else MAP_TEMP(current_temp, model->heaters[index], value)
+      }
       break;
     case state:
       if (parent() == heaters) {

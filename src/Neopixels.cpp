@@ -3,6 +3,8 @@
 #include <Config.h>
 #include <Structure.h>
 
+#define COLD_TEMP 50
+#define TEMP_HYSTERESIS 5
 #define TRANSLATE(i, px) (config.leds[i].reverse \
   ? config.common_count - 1 - (px + config.leds[i].offset) % config.common_count \
   : (px + config.leds[i].offset) % config.common_count)
@@ -10,10 +12,14 @@
 
 static Adafruit_NeoPixel *neopixels[MAX_LEDS] = {0};
 
-uint8_t rescale_temp(uint8_t i, uint16_t temp, uint16_t setpoint) {
+uint8_t rescale_temp(uint8_t i, float temp, uint16_t setpoint) {
   // -2 to allow for overshoot and to animate to indicate activity
-  float x = max(0, (setpoint - config.leds[i].temp_base)) / (config.common_count - 2.0f);
-  return round((temp - config.leds[i].temp_base) / x);
+  if (temp < setpoint + TEMP_HYSTERESIS) {
+    float x = max(0, (setpoint - config.leds[i].temp_base)) / (config.common_count - 2.0f);
+    return round((temp - config.leds[i].temp_base) / x);
+  } else {
+    return round(config.common_count * max(setpoint, (uint16_t)COLD_TEMP) / temp);
+  }
 }
 
 void render_connecting() {
@@ -32,8 +38,6 @@ void render_connecting() {
 void render_neopixels() {
   static uint8_t tick = 0;
   static uint8_t px[MAX_LEDS] = {1};
-  static uint16_t active_setpoints[MAX_TOOLS] = {0};
-  static uint16_t standby_setpoints[MAX_TOOLS] = {0};
 
   // slow down animations so they aren't so anxiety inducing, but render often for responsiveness to change
   tick = (tick + 1) % 5;
@@ -100,7 +104,8 @@ void render_neopixels() {
         }
 
         for (uint8_t t = 0; !display_item && t < MAX_TOOLS; ++t) {
-          if (object_model.heaters[t].state == heater_off && object_model.heaters[t].current_temp > 50)
+          if (object_model.heaters[t].state == heater_off
+            && object_model.heaters[t].current_temp > COLD_TEMP)
             display_item = HEATER_FLAG | t;
         }
 
@@ -131,10 +136,14 @@ void render_neopixels() {
             if (object_model.heaters[h].state == standby)
               heater = h;
           }
+          for (uint8_t h = 0; heater == DISPLAY_ANY && h < MAX_TOOLS; ++h) {
+            if (object_model.heaters[h].current_temp > COLD_TEMP)
+              heater = h;
+          }
+
           if (heater == DISPLAY_ANY)
             heater = 0;
         }
-        uint16_t setpoint = 0;
         switch (object_model.heaters[heater].state) {
           case fault:
             neopixels[i]->fill(0);
@@ -146,19 +155,19 @@ void render_neopixels() {
           case active:
           case tuning:
           case standby:
-            if (object_model.heaters[heater].state == active && object_model.heaters[heater].state == tuning) {
-              setpoint = active_setpoints[heater] = object_model.heaters[heater].active_temp;
-            } else if (object_model.heaters[heater].state == standby) {
-              setpoint = standby_setpoints[heater] = object_model.heaters[heater].standby_temp;
+            uint16_t setpoint;
+            if (object_model.heaters[heater].state == active || object_model.heaters[heater].state == tuning) {
+              setpoint = object_model.heaters[heater].active_temp;
+            } else {
+              setpoint = object_model.heaters[heater].standby_temp;
             }
             neopixels[i]->fill(config.heater.secondary);
-            fill_count = rescale_temp(i, object_model.heaters[heater].current_temp, setpoint);
-            neopixels[i]->fill(object_model.heaters[heater].current_temp > setpoint + 5
+            fill_count = max((uint8_t) 1, rescale_temp(i, object_model.heaters[heater].current_temp, setpoint));
+            neopixels[i]->fill(object_model.heaters[heater].current_temp > setpoint + TEMP_HYSTERESIS
               ? config.heater.cooling : config.heater.heating, TRANSLATE_FILL(i, 0, fill_count), fill_count);
             break;
           case heater_off:
-            setpoint = max(active_setpoints[heater], standby_setpoints[heater]);
-            fill_count = rescale_temp(i, object_model.heaters[heater].current_temp, setpoint);
+            fill_count = rescale_temp(i, object_model.heaters[heater].current_temp, 0);
             neopixels[i]->fill(config.state.idle);
             if (fill_count > 0) {
               neopixels[i]->fill(config.heater.cooling, TRANSLATE_FILL(i, 0, fill_count), fill_count);
