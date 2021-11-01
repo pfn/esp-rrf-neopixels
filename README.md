@@ -33,9 +33,17 @@ This project is designed to handle NeoPixel control on an ESP8266 (Wemos D1 mini
 
 ### Building
 
+TODO
+
 ### Flashing
 
+TODO more clarity
+
 * Flash the filesystem, and the firmware image to the ESP device using the `d1_mini` environment. Subsequent updates can be done over the air (WiFi) using the `d1_mini_OTA` environment
+
+### WiFi
+
+TODO
 
 ### Wiring
 
