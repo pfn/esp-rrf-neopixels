@@ -4,9 +4,9 @@
 #include <Print.h>
 #include <math.h>
 
-#define DEBUGF(args...) debug_buffer.printf(args)
-#define DEBUGW(buf, size) debug_buffer.write(buf, size)
-#define DEBUG(x) debug_buffer.println(x)
+#define DEBUGF(args...) do { debug_buffer.printf(args); if (!config.tx_passthru) Serial1.printf(args); } while (0)
+#define DEBUGW(buf, size) do { debug_buffer.write(buf, size); if (!config.tx_passthru) Serial1.printf(args); } while (0)
+#define DEBUG(x) do { debug_buffer.println(x); if (!config.tx_passthru) Serial1.println(x); } while (0)
 
 class ring_buffer : public Print {
   public:

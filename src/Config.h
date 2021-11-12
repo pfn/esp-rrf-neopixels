@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
   bool loaded = false;
   bool swap_serial = true;
+  bool tx_passthru = true;
   uint16_t query_interval = 1000;
   uint8_t leds_count = 0;
   uint8_t common_count = 255;
@@ -66,7 +67,7 @@ typedef struct {
 extern Config config;
 
 enum cfg_state { cfg_TOP, cfg_unk,
-  cfg_swap_serial, cfg_query_interval,
+  cfg_swap_serial, cfg_query_interval, cfg_tx_passthru,
   cfg_pin, cfg_start_color, cfg_display_item,
   cfg_offset, cfg_reverse, cfg_count,
   cfg_brightness, cfg_temp_base,

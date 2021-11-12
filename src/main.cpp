@@ -19,7 +19,7 @@ ESP8266WebServer server(80);
 #define SERIAL_BUFFER_SIZE 384
 char hostname[HOSTNAME_LEN] = "rrf-neopixel";
 
-WiFiManager wm;// (debug_buffer); needs https://github.com/tzapu/WiFiManager/pull/1307
+WiFiManager wm;//(debug_buffer); // needs https://github.com/tzapu/WiFiManager/pull/1307
 
 WiFiManagerParameter custom_hostname("hostname",
  "Choose a hostname for this NeoPixel controller", hostname, HOSTNAME_LEN);
@@ -50,6 +50,17 @@ void send_m409() {
   Serial.print("M409 F\"d99f\"\n");
 }
 
+void init_serial1() {
+  Serial1.end();
+  if (config.tx_passthru) {
+    DEBUG("Disabling debug output on Serial1");
+    Serial1.begin(57600);
+  } else {
+    Serial1.begin(115200);
+    Serial1.setDebugOutput(true);
+    DEBUG("Enabling debug output on Serial1");
+  }
+}
 void handleConfigUpload() {
   HTTPUpload& upload = server.upload();
   static File file;
@@ -80,6 +91,7 @@ void handleConfigUpload() {
       if (file) {
         config = parseConfig(file);
         file.close();
+        init_serial1();
         init_neopixels();
         m409_ticker.detach();
         m409_ticker.attach_ms_scheduled(config.query_interval, send_m409);
@@ -91,7 +103,6 @@ void handleConfigUpload() {
 void setup() {
   bool config_loaded = false;
 
-  Serial1.begin(57600);
   LittleFS.begin();
 
   File f = LittleFS.open("/hostname", "r");
@@ -109,6 +120,7 @@ void setup() {
   }
   LittleFS.end();
 
+  init_serial1();
   Serial.begin(57600);
   if (config.swap_serial) {
     DEBUG("Swapping serial pins");
@@ -234,13 +246,15 @@ void loop() {
       if (WiFi.SSID() != "")
         wm.setConfigPortalTimeout(300);
     }
-    render_connecting();
+    render_connecting(config_portal_running);
   }
 
   int available;
   while ((available = Serial.available()) > 0) {
     int read = Serial.read(read_buffer, min(SERIAL_BUFFER_SIZE, available));
-    Serial1.write(read_buffer, read);
+    if (config.tx_passthru) {
+      Serial1.write(read_buffer, read);
+    }
     last_buffer.write((const uint8_t *)read_buffer, read);
     for (int i = 0; i < read; ++i) {
       parseObjectModel(read_buffer[i], &model);

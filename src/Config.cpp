@@ -35,6 +35,7 @@ void ConfigListener::key(const char *key) {
   else MAP_KEY("halted",         cfg_halted)
   else MAP_KEY("swap_serial",    cfg_swap_serial)
   else MAP_KEY("query_interval", cfg_query_interval)
+  else MAP_KEY("tx_passthru",    cfg_tx_passthru)
   else current = cfg_unk;
 }
 
@@ -73,6 +74,9 @@ void ConfigListener::handle_value(const char *value) {
       break;
     case cfg_swap_serial:
       config.swap_serial = value[0] == 't';
+      break;
+    case cfg_tx_passthru:
+      config.tx_passthru = value[0] == 't';
       break;
     case cfg_query_interval:
       config.query_interval = strtol(value, NULL, 10);

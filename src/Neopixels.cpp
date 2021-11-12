@@ -22,12 +22,16 @@ uint8_t rescale_temp(uint8_t i, float temp, uint16_t setpoint) {
   }
 }
 
-void render_connecting() {
+void render_connecting(bool in_config_portal) {
   static uint32_t last_tick = millis();
   static uint32_t color = 0;
   if (millis() - last_tick > 500) {
     last_tick = millis();
-    color = color == 0 ? 0xffff00 : 0;
+    if (in_config_portal) {
+      color = color == 0 ? 0xff00ff : 0;
+    } else {
+      color = color == 0 ? 0xffff00 : 0;
+    }
   }
   for (uint8_t i = 0; i < config.leds_count; ++i) {
     neopixels[i]->setPixelColor(0, color);
